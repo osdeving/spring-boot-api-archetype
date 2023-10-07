@@ -1,0 +1,87 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+    <springProperty scope="local" name="log_path" source="log.path"/>
+    <springProperty scope="local" name="host_syslog" source="log.host.syslog"/>
+    <springProperty scope="local" name="syslog_facility" source="syslog.facility"/>
+    <springProperty scope="local" name="syslog_suffixPattern" source="syslog.suffixPattern"/>
+    <springProperty scope="local" name="app_name" source="app.name"/>
+    <springProperty scope="local" name="project_version" source="app.version"/>
+    <springProperty scope="context" name="log_level_application" source="log.level.application" defaultValue="TRACE"/>
+    <springProperty scope="context" name="log_level_root" source="log.level.root" defaultValue="INFO"/>
+
+    <appender name="CONSOLE_APPENDER" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>TRACE</level>
+        </filter>
+
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%blue([%d{yyyy-MM-dd HH:mm:ss:SSS}]) %highlight(%green([${symbol_dollar}{app_name}])) %highlight(%green([${symbol_dollar}{project_version}])) %yellow([%clr(%-5p)]) %magenta(${symbol_dollar}{PID}) %gray(---) %cyan([%15.15t]) %green(%-40.40logger{0}) %red(:) %blue(%m) %n %highlight(%magenta([%marker])) %n</pattern>
+        </layout>
+    </appender>
+
+    <appender name="NDJSON_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${symbol_dollar}{log_path}/${symbol_dollar}{app_name}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${symbol_dollar}{log_path}/${symbol_dollar}{app_name}.%i.log</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>10</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <fieldNames>
+                <timestamp>instant</timestamp>
+                <thread>thread</thread>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+            <includeMdcKeyName>OPERATION_ID</includeMdcKeyName>
+            <customFields>{"app_name": "${symbol_dollar}{app_name}", "project_version": "${symbol_dollar}{project_version}"}</customFields>
+        </encoder>
+    </appender>
+
+    <appender name="NDJSON_CONSOLE_APPENDER" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <fieldNames>
+                <timestamp>instant</timestamp>
+                <thread>thread</thread>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+            <includeMdcKeyName>OPERATION_ID</includeMdcKeyName>
+            <customFields>{"app_name": "${symbol_dollar}{app_name}", "project_version": "${symbol_dollar}{project_version}"}</customFields>
+        </encoder>
+    </appender>
+
+    <springProfile name="dev, local">
+        <root>
+            <level value="${symbol_dollar}{log_level_root}"/>
+            <appender-ref ref="NDJSON_FILE_APPENDER"/>
+            <appender-ref ref="CONSOLE_APPENDER"/>
+        </root>
+        <logger name="${groupId}" level="${symbol_dollar}{log_level_application}" additivity="false">
+            <appender-ref ref="NDJSON_FILE_APPENDER"/>
+            <appender-ref ref="CONSOLE_APPENDER"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root>
+            <level value="${symbol_dollar}{log_level_root}"/>
+            <appender-ref ref="NDJSON_FILE_APPENDER"/>
+            <appender-ref ref="NDJSON_CONSOLE_APPENDER"/>
+        </root>
+
+        <logger name="${groupId}" level="${symbol_dollar}{log_level_application}" additivity="false">
+            <appender-ref ref="NDJSON_FILE_APPENDER"/>
+            <appender-ref ref="NDJSON_CONSOLE_APPENDER"/>
+        </logger>
+    </springProfile>
+</configuration>

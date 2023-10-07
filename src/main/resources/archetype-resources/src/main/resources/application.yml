@@ -1,0 +1,47 @@
+log:
+  path: ./logs
+
+
+info:
+  app:
+    artifactId: '@project.artifactId@'
+    description: '@project.description@'
+    groupId: '@project.groupId@'
+    name: '@project.name@'
+    version: '@project.version@'
+
+app.name: demo-api
+app.version: '@project.version@'
+
+
+application:
+  teste: teste
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+  port: 2227
+  tomcat:
+    connection-timeout: 2000
+
+spring:
+  main:
+    log-startup-info: false
+    #banner-mode: off
+
+  profiles:
+    active: dev
+  application:
+    name: demo-api
+  groovy:
+    template:
+      check-template-location: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+jasypt:
+  encryptor:
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+    password: does-not-make-this

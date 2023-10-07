@@ -1,0 +1,8 @@
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+server:
+  max-http-header-size: 10000000
